@@ -1,0 +1,2 @@
+# Foreground_Target_Extraction
+基于监控视频的前景目标提取
