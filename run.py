@@ -26,6 +26,9 @@ def choose_algorithms(inputMessage):
     elif inputMessage == "2":
         print("你选择的是算法2:MultiLayer")
         return "MultiLayer"
+    elif inputMessage == "3":
+        print("你选择的是算法3:LBMixtureOfGaussians")
+        return "LBMixtureOfGaussians"
     elif inputMessage == "q":
         sys.exit(0)
     else:
@@ -34,61 +37,117 @@ def choose_algorithms(inputMessage):
 
 def choose_video(inputMessage):
 
-    if inputMessage == "0":
-        print("你选择的是视频0:不晃动的动态背景的水流")
-        return "./dataset/NoShake_MoveBg/waterSurface.avi"
-    elif inputMessage == "1":
-        print("你选择的是视频1:不晃动的静态背景的机场")
-        return "./dataset/NoShake_StaticBg/airport.avi"
-    elif inputMessage == "2":
-        print("你选择的是视频2:不晃动的静态背景的大厅")
-        return "./dataset/NoShake_StaticBg/hall.avi"
-    elif inputMessage == "3":
-        print("你选择的是视频3:不晃动的静态背景的办公室")
-        return "./dataset/NoShake_StaticBg/office.avi"
-    elif inputMessage == "4":
-        print("你选择的是视频4:不晃动的静态背景的行人")
-        return "./dataset/NoShake_StaticBg/pedestrian.avi"
-    elif inputMessage == "5":
-        print("你选择的是视频5:不晃动的静态背景的烟")
-        return "./dataset/NoShake_StaticBg/smoke.avi"
-    elif inputMessage == "6":
-        print("你选择的是视频6:晃动的车6")
-        return "./dataset/Shake/cars6.avi"
-    elif inputMessage == "7":
-        print("你选择的是视频7:晃动的车7")
-        return "./dataset/Shake/cars7.avi"
-    elif inputMessage == "8":
-        print("你选择的是视频8:晃动的人1")
-        return "./dataset/Shake/people1.avi"
-    elif inputMessage == "9":
-        print("你选择的是视频9:晃动的人2")
-        return "./dataset/Shake/people2.avi"
-    elif inputMessage == "q":
+    video_dict = {
+        "0":{
+            "msg": "你选择的是视频0:不晃动的动态背景的水流",
+            "src": "./dataset/NoShake_MoveBg/waterSurface.avi"
+        },
+        "1": {
+            "msg": "你选择的是视频1:不晃动的静态背景的机场",
+            "src": "./dataset/NoShake_StaticBg/airport.avi"
+        },
+        "2": {
+            "msg": "你选择的是视频2:不晃动的静态背景的大厅",
+            "src": "./dataset/NoShake_StaticBg/hall.avi"
+        },
+        "3": {
+            "msg": "你选择的是视频3:不晃动的静态背景的办公室",
+            "src": "./dataset/NoShake_StaticBg/office.avi"
+        },
+        "4": {
+            "msg": "你选择的是视频4:不晃动的静态背景的行人",
+            "src": "./dataset/NoShake_StaticBg/pedestrian.avi"
+        },
+        "5": {
+            "msg": "你选择的是视频5:不晃动的静态背景的烟",
+            "src": "./dataset/NoShake_StaticBg/smoke.avi"
+        },
+        "6": {
+            "msg": "你选择的是视频6:晃动的车6",
+            "src": "./dataset/Shake/cars6.avi"
+        },
+        "7": {
+            "msg": "你选择的是视频7:晃动的车7",
+            "src": "./dataset/Shake/cars7.avi"
+        },
+        "8": {
+            "msg": "你选择的是视频8:晃动的人1",
+            "src": "./dataset/Shake/people1.avi"
+        },
+        "9": {
+            "msg": "你选择的是视频9:晃动的人2",
+            "src": "./dataset/Shake/people2.avi"
+        },
+        "10": {
+            "msg": "你选择的是视频10:校园",
+            "src": "./dataset/Check_Foreground/Campus.avi"
+        },
+        "11": {
+            "msg": "你选择的是视频11:窗帘",
+            "src": "./dataset/Check_Foreground/Curtain.avi"
+        },
+        "12": {
+            "msg": "你选择的是视频12:电动扶梯",
+            "src": "./dataset/Check_Foreground/Escalator.avi"
+        },
+        "13": {
+            "msg": "你选择的是视频13:喷泉",
+            "src": "./dataset/Check_Foreground/Fountain.avi"
+        },
+        "14": {
+            "msg": "你选择的是视频14:大厅",
+            "src": "./dataset/Check_Foreground/hall.avi"
+        },
+        "15": {
+            "msg": "你选择的是视频15:休息室",
+            "src": "./dataset/Check_Foreground/Lobby.avi"
+        },
+        "16": {
+            "msg": "你选择的是视频16:办公室",
+            "src": "./dataset/Check_Foreground/office.avi"
+        },
+        "17": {
+            "msg": "你选择的是视频17:天桥",
+            "src": "./dataset/Check_Foreground/overpass.avi"
+        },
+    }
+
+
+
+    if inputMessage == "q":
         sys.exit(0)
+    elif video_dict.has_key(inputMessage):
+        print(video_dict[inputMessage]["msg"])
+        return video_dict[inputMessage]["src"]
     else:
         print("你输入的字符无效")
         return None
+
+
 
 def main():
 
 
     while True:
-        print("前景目标提取程序\n")
-        print("0:DPMean\t\t 1:LBP_MRF\t\t 2:MultiLayer \t\tq:退出本程序")
+
+        print("\n\t\t\t\t\t\t前景目标提取程序")
+        print("\n============================================================================")
+        print("0:DPMean\t\t 1:LBP_MRF\t\t 2:MultiLayer \t\t 3:LBMixtureOfGaussians \t\tq:退出本程序")
+        print("============================================================================")
         inputMessage = raw_input("请选择算法: ");
         algorithms = choose_algorithms(inputMessage)
-        print("\n0:不晃动的动态背景的水流")
-        print("1:不晃动的静态背景的机场")
-        print("2:不晃动的静态背景的大厅")
-        print("3:不晃动的静态背景的办公室")
-        print("4:不晃动的静态背景的行人")
-        print("5:不晃动的静态背景的烟")
-        print("6:晃动的车6")
-        print("7:晃动的车7")
-        print("8:晃动的人1")
-        print("9:晃动的人2")
+        print("\n============================================================================")
+        print("0:不晃动的动态背景的水流\t\t\t\t\t1:不晃动的静态背景的机场")
+        print("2:不晃动的静态背景的大厅\t\t\t\t\t3:不晃动的静态背景的办公室")
+        print("4:不晃动的静态背景的行人\t\t\t\t\t5:不晃动的静态背景的烟")
+        print("6:晃动的车6\t\t\t\t\t\t\t\t7:晃动的车7")
+        print("8:晃动的人1\t\t\t\t\t\t\t\t9:晃动的人2")
+        print("10:检测视频:校园\t\t\t\t\t\t\t11:检测视频:窗帘")
+        print("12:检测视频:电动扶梯\t\t\t\t\t\t13:检测视频:喷泉")
+        print("14:检测视频:大厅\t\t\t\t\t\t\t15:检测视频:休息室")
+        print("16:检测视频:办公室\t\t\t\t\t\t17:检测视频:天桥")
         print("q:退出本程序")
+        print("============================================================================")
         inputMessage = raw_input("请选择视频: ");
         videoSrc = choose_video(inputMessage)
 

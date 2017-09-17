@@ -4,7 +4,6 @@ import numpy as np
 import cv2
 import libbgs
 import sys
-import json
 
 class App:
 
@@ -39,13 +38,14 @@ class App:
         elif self.bgsName == "LBMixtureOfGaussians":
             bgs = libbgs.LBMixtureOfGaussians()
 
+        # outputpic = bgs.apply(pic)
+        # cv2.imshow('2', outputpic)
+        # print outputpic
+        # cv2.waitKey(15000)
 
-        frame_num = 0   #帧数
 
-        json_list = []
-
+        frame_num = 0
         while True:
-            # cv2.waitKey(500)
             frame_num += 1
             flag, frame = capture.read()
             #print(frame)
@@ -53,27 +53,7 @@ class App:
             img_bgmodel = None
             if flag:
                 img_output = bgs.apply(frame)
-                img_bgmodel = bgs.getBackgroundModel()
-
-                # print(img_output.shape)
-
-                whitePoints = 0
-                blackPoints = 0
-                for i in range(0,len(img_output)):
-                    for j in range(0,len(img_output[i])):
-                        if img_output[i][j] == 255:
-                            whitePoints += 1
-                        else:
-                            blackPoints += 1
-
-                print("white:",whitePoints," black:",blackPoints,"  Frame:",frame_num)
-                d = {
-                    0:frame_num,
-                    1:whitePoints,
-                    2:blackPoints
-                }
-                json_list.append(d)
-
+                img_bgmodel = bgs.getBackgroundModel();
 
                 cv2.imshow('img_raw', frame)
                 cv2.imshow('img_output', img_output)
@@ -90,10 +70,6 @@ class App:
                 cv2.destroyAllWindows()
                 break
         print("帧数:",frame_num)
-
-        with open('./video-json/overpass.json', 'w') as json_file:
-            json_file.write(json.dumps(json_list))
-            print("写入完毕")
 
         cv2.waitKey(1500)
         cv2.destroyAllWindows()
