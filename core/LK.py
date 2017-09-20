@@ -3,6 +3,7 @@
 import numpy as np
 import cv2
 import libbgs
+from mean_shift_lib import mean_shift as ms
 
 
 #光流检测的参数
@@ -12,7 +13,7 @@ lk_params = dict( winSize  = (15, 15),#搜索窗口的大小
                   criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
 
 #角点检测的参数
-feature_params = dict( maxCorners = 500,#最大角点数
+feature_params = dict( maxCorners = 1000,#最大角点数
                        qualityLevel = 0.3,#角点最低质量
                        minDistance = 7,#角点间最小欧式距离
                        blockSize = 7 )#这个没懂，我做角点检测时只设置了上面几个参数，望指教
@@ -21,15 +22,17 @@ feature_params = dict( maxCorners = 500,#最大角点数
 class App:
     def __init__(self, video_src):
         self.track_len = 10
-        self.detect_interval = 5
+        self.detect_interval = 2
         self.tracks = []
         self.cam = cv2.VideoCapture(video_src)
         self.frame_idx = 0
 
     def run(self):
 
+        #bgs = libbgs.DPAdaptiveMedian()
+
         while True:
-            cv2.waitKey(500)
+            #cv2.waitKey(500)
             ret, frame = self.cam.read()#通过摄像头获取一张图片
             if ret:
                 frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)#转化为灰度图
@@ -61,31 +64,68 @@ class App:
 
                 #draw_str(vis, (20, 20), 'track count: %d' % len(self.tracks))
 
-            if self.frame_idx % self.detect_interval == 0:#每5帧检测一次特征点
-                mask = np.zeros_like(frame_gray)#初始化和视频大小相同的图像
-                mask[:] = 255#将mask赋值255也就是算全部图像的角点
-                for x, y in [np.int32(tr[-1]) for tr in self.tracks]:#跟踪的角点画圆
-                    cv2.circle(mask, (x, y), 5, 0, -1)
-                p = cv2.goodFeaturesToTrack(frame_gray, mask = mask, **feature_params)#角点检测
-                if p is not None:
-                    for x, y in np.float32(p).reshape(-1, 2):
-                        self.tracks.append([(x, y)])#将检测到的角点放在待跟踪序列中
+            newFrame =np.zeros((500,500))
 
+            #if self.frame_idx % self.detect_interval == 0:#每5帧检测一次特征点
+            mask = np.zeros_like(frame_gray)  # 初始化和视频大小相同的图像
+            mask[:] = 255  # 将mask赋值255也就是算全部图像的角点
+
+            pointsList = []
+
+            for x, y in [np.int32(tr[-1]) for tr in self.tracks]:  # 跟踪的角点画圆
+                cv2.circle(mask, (x, y), 5, 0, -1)
+                curPoint = [float(x), float(y)]
+                pointsList.append(curPoint)
+            resPoints = np.array(pointsList)
+
+            res = self.mean_shift_runner(resPoints)
+            newFrame = self.process_shiftPoints(res, frame.shape[0], frame.shape[1])
+
+            p = cv2.goodFeaturesToTrack(frame_gray, mask=mask, **feature_params)  # 角点检测
+            if p is not None:
+                for x, y in np.float32(p).reshape(-1, 2):
+                    self.tracks.append([(x, y)])  # 将检测到的角点放在待跟踪序列中
 
             self.frame_idx += 1
             self.prev_gray = frame_gray
 
-            #bgs = libbgs.DPMean()
-            #img_output = bgs.apply(frame)
-            cv2.imshow('lk_track', vis)
-            #cv2.imshow('res',img_output)
 
+
+            #img_output = bgs.apply(vis)
+            cv2.imshow('lk_track', vis)
             cv2.moveWindow('lk_track', 100, 100)
+
+            cv2.imshow('nf', newFrame)
+            cv2.moveWindow('nf', 100, 300)
+
+            # cv2.imshow('res',img_output)
             #cv2.moveWindow('res', 100, 300)
 
             ch = 0xFF & cv2.waitKey(1)#按esc退出
             if ch == 27:
                 break
+
+    def mean_shift_runner(self,points):
+        print(points)
+
+        mean_shifter = ms.MeanShift()
+        mean_shift_result = mean_shifter.cluster(points, kernel_bandwidth=3)
+
+        print(mean_shift_result.shifted_points)
+        print("===========================")
+        return mean_shift_result.shifted_points
+
+
+
+    def process_shiftPoints(self,points,dimensionX,dimensionY):
+        result = np.zeros((500,500))
+        for i in range(len(points)):
+            print(points[i])
+            X = int(points[i][0])
+            Y = int(points[i][1])
+            result[X][Y] = 255
+        return result
+
 
 def main():
     # import sys
@@ -96,7 +136,7 @@ def main():
     # App(video_src).run()
 
 
-    video_src = "dataset/people_doudong.avi"
+    video_src = "../dataset/Shake/cars7.avi"
     App(video_src).run()
 
 

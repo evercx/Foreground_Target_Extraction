@@ -12,6 +12,7 @@ class App:
 
         self.videoSrc = videoSrc
         self.bgsName = bgsName
+        self.threshold = 5
         #print("视频地址:",videoSrc)
 
     def run(self):
@@ -39,15 +40,24 @@ class App:
         elif self.bgsName == "LBMixtureOfGaussians":
             bgs = libbgs.LBMixtureOfGaussians()
 
+        fgbg = cv2.bgsegm.createBackgroundSubtractorMOG()
+
+
 
         frame_num = 0   #帧数
 
         json_list = []
+        ForegroundTargetList = []
+
+        begin_frame = -1
+        end_frame = -1
+        beginP = -1
 
         while True:
-            # cv2.waitKey(500)
+            cv2.waitKey(1000)
             frame_num += 1
             flag, frame = capture.read()
+
             #print(frame)
             img_output = None
             img_bgmodel = None
@@ -66,22 +76,36 @@ class App:
                         else:
                             blackPoints += 1
 
-                print("white:",whitePoints," black:",blackPoints,"  Frame:",frame_num)
                 d = {
                     0:frame_num,
                     1:whitePoints,
-                    2:blackPoints
+                    2:blackPoints,
+                    3:whitePoints / float(whitePoints + blackPoints) * 100
                 }
                 json_list.append(d)
+                print("white:", d[1], " black:", d[2], " Proportion:",d[3],"  Frame:", frame_num)
 
-
+                if d[3] >= self.threshold and begin_frame == -1:
+                    begin_frame = frame_num
+                    beginP = d[3]
+                if d[3] < self.threshold and begin_frame != -1:
+                    end_frame = frame_num - 1
+                    ForegroundTargetList.append({"begin":begin_frame,"end":end_frame,"beginP":beginP,"endP":d[3]})
+                    begin_frame = -1
+                    end_frame = -1
                 cv2.imshow('img_raw', frame)
                 cv2.imshow('img_output', img_output)
-                cv2.imshow('img_bgmodel', img_bgmodel)
+                #cv2.imshow('img_bgmodel', img_bgmodel)
 
                 cv2.moveWindow('img_raw', 100, 100)
-                cv2.moveWindow('img_output', 100, 300)
-                cv2.moveWindow('img_bgmodel', 100, 500)
+                cv2.moveWindow('img_output', 300, 100)
+                #cv2.moveWindow('img_bgmodel', 100, 500)
+
+                # opencv自带的高斯混合模型
+                fgmask = fgbg.apply(frame)
+                cv2.imshow('gaussians', fgmask)
+                cv2.moveWindow('gaussians', 500, 100)
+
             else:
                 cv2.waitKey(1500)
                 cv2.destroyAllWindows()
@@ -90,10 +114,13 @@ class App:
                 cv2.destroyAllWindows()
                 break
         print("帧数:",frame_num)
+        for i in range(len(ForegroundTargetList)):
+            print(ForegroundTargetList[i]["begin"],ForegroundTargetList[i]["end"])
+        print("=============================")
 
-        with open('./video-json/overpass.json', 'w') as json_file:
-            json_file.write(json.dumps(json_list))
-            print("写入完毕")
+        # with open('./video-json/overpass .json', 'w') as json_file:
+        #     json_file.write(json.dumps(json_list))
+        #     print("写入完毕")
 
         cv2.waitKey(1500)
         cv2.destroyAllWindows()
